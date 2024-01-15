@@ -1,0 +1,37 @@
+# IDEs
+.idea
+*.iml
+.project
+.metadata
+.gopath
+
+.DS_Store
+
+# Temporary Build Files
+build/_maven_*
+build/_output
+_output
+target/
+
+# Bundle directory
+/bundle
+
+# Binary files
+/yaks
+/yaks-*
+/license-check
+
+# envrc
+.envrc
+
+# Released Packages
+*.tar.gz
+
+# cask packages
+.cask/
+dist/
+
+# JBang
+.camel-jbang/
+.yaks-jbang/
+.jbang/
