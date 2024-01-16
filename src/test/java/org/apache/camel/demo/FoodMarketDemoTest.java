@@ -23,16 +23,20 @@ import org.citrusframework.kafka.endpoint.KafkaEndpoint;
 import org.citrusframework.mail.server.MailServer;
 import org.citrusframework.openapi.OpenApiSpecification;
 import org.citrusframework.quarkus.CitrusSupport;
+import org.citrusframework.selenium.endpoint.SeleniumBrowser;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 import static org.citrusframework.actions.ReceiveMessageAction.Builder.receive;
 import static org.citrusframework.actions.SendMessageAction.Builder.send;
+import static org.citrusframework.actions.SleepAction.Builder.delay;
+import static org.citrusframework.container.FinallySequence.Builder.doFinally;
 import static org.citrusframework.dsl.JsonSupport.json;
 import static org.citrusframework.dsl.JsonSupport.marshal;
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 import static org.citrusframework.openapi.actions.OpenApiActionBuilder.openapi;
+import static org.citrusframework.selenium.actions.SeleniumActionBuilder.selenium;
 
 @QuarkusTest
 @CitrusSupport
@@ -50,6 +54,9 @@ public class FoodMarketDemoTest {
 
     @CitrusEndpoint
     HttpServer shippingDetailsService;
+
+    @CitrusEndpoint
+    SeleniumBrowser browser;
 
     @CitrusEndpoint
     KafkaEndpoint supplies;
@@ -78,6 +85,8 @@ public class FoodMarketDemoTest {
         Supply supply = new Supply("citrus", product, 250, 0.99D);
         createSupply(supply);
 
+        t.then(t.applyBehavior(new WaitForEntityPersisted(supply, dataSource)));
+
         verifyBookingStatus(Booking.Status.APPROVAL_REQUIRED);
 
         approveBooking();
@@ -97,18 +106,25 @@ public class FoodMarketDemoTest {
     }
 
     private void approveBooking() {
-        t.variable("id", "${bookingId}");
-        t.then(openapi()
-                .specification(foodMarketSpec)
-                .client(foodMarketApiClient)
-                .send("approveBooking")
-        );
+        t.given(selenium()
+                .browser(browser)
+                .start());
 
-        t.then(openapi()
-                .specification(foodMarketSpec)
-                .client(foodMarketApiClient)
-                .receive("approveBooking", HttpStatus.ACCEPTED)
-        );
+        t.given(doFinally().actions(
+                selenium()
+                        .browser(browser)
+                        .stop()));
+
+        t.when(selenium()
+                .browser(browser)
+                .navigate("http://localhost:8081"));
+
+        t.then(delay().seconds(3));
+
+        t.then(selenium()
+                .browser(browser)
+                .click()
+                .element("id", "${bookingId}"));
     }
 
     private void verifyBookingStatus(Booking.Status status) {
