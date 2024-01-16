@@ -15,14 +15,20 @@ import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusConfiguration;
 import org.citrusframework.annotations.CitrusEndpoint;
 import org.citrusframework.annotations.CitrusResource;
+import org.citrusframework.http.client.HttpClient;
 import org.citrusframework.kafka.endpoint.KafkaEndpoint;
 import org.citrusframework.mail.server.MailServer;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
+import static org.citrusframework.actions.ExecuteSQLAction.Builder.sql;
 import static org.citrusframework.actions.ReceiveMessageAction.Builder.receive;
 import static org.citrusframework.actions.SendMessageAction.Builder.send;
+import static org.citrusframework.dsl.JsonSupport.json;
 import static org.citrusframework.dsl.JsonSupport.marshal;
+import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
@@ -33,7 +39,7 @@ public class FoodMarketDemoTest {
     TestCaseRunner t;
 
     @CitrusEndpoint
-    KafkaEndpoint bookings;
+    HttpClient foodMarketApiClient;
 
     @CitrusEndpoint
     KafkaEndpoint supplies;
@@ -71,6 +77,17 @@ public class FoodMarketDemoTest {
         verifyShippingEvent(shippingEvent);
 
         verifyBookingCompletedMail(booking);
+
+        verifyBookingStatus(Booking.Status.COMPLETED);
+    }
+
+    private void verifyBookingStatus(Booking.Status status) {
+        t.then(sql()
+                .dataSource(dataSource)
+                .query()
+                .statement("select status from booking where booking.id=${bookingId}")
+                .validate("status", status.name())
+        );
     }
 
     private void verifyBookingCompletedMail(Booking booking) {
@@ -78,10 +95,21 @@ public class FoodMarketDemoTest {
     }
 
     private void createBooking(Booking booking) {
-        t.when(send()
-                .endpoint(bookings)
+        t.when(http()
+                .client(foodMarketApiClient)
+                .send()
+                .post("/api/bookings")
                 .message()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(marshal(booking))
+        );
+
+        t.then(http()
+                .client(foodMarketApiClient)
+                .receive()
+                .response(HttpStatus.CREATED)
+                .message()
+                .extract(json().expression("$.id", "bookingId"))
         );
     }
 
