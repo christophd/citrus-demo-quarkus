@@ -13,8 +13,8 @@ import static org.citrusframework.container.RepeatOnErrorUntilTrue.Builder.repea
 public class WaitForEntityPersisted implements TestBehavior {
 
     private final String entityName;
-    private final String status;
     private final DataSource dataSource;
+    private String status;
 
     public WaitForEntityPersisted(Booking booking, DataSource dataSource) {
         this.entityName = "booking";
@@ -39,5 +39,10 @@ public class WaitForEntityPersisted implements TestBehavior {
                             .formatted(entityName, entityName, status))
                     .validate("found", "1"))
         );
+    }
+
+    public WaitForEntityPersisted withStatus(String status) {
+        this.status = status;
+        return this;
     }
 }

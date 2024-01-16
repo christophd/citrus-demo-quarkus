@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.apache.camel.demo.behavior.VerifyBookingCompletedMail;
+import org.apache.camel.demo.behavior.VerifyBookingStatus;
 import org.apache.camel.demo.behavior.WaitForEntityPersisted;
 import org.apache.camel.demo.model.Booking;
 import org.apache.camel.demo.model.Product;
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import static org.citrusframework.actions.ExecuteSQLAction.Builder.sql;
 import static org.citrusframework.actions.ReceiveMessageAction.Builder.receive;
 import static org.citrusframework.actions.SendMessageAction.Builder.send;
 import static org.citrusframework.dsl.JsonSupport.json;
@@ -59,15 +59,19 @@ public class FoodMarketDemoTest {
     @Test
     void shouldMatchBookingAndSupply() {
         Product product = new Product("Kiwi");
-        Booking booking = new Booking("citrus", product, 100, 0.99D,
+        Booking booking = new Booking("citrus", product, 250, 0.99D,
                 TestHelper.createShippingAddress().getFullAddress());
 
         createBooking(booking);
 
-        t.then(t.applyBehavior(new WaitForEntityPersisted(booking, dataSource)));
+        t.then(t.applyBehavior(new WaitForEntityPersisted(booking, dataSource).withStatus(Booking.Status.APPROVAL_REQUIRED.name())));
 
-        Supply supply = new Supply("citrus", product, 100, 0.99D);
+        Supply supply = new Supply("citrus", product, 250, 0.99D);
         createSupply(supply);
+
+        verifyBookingStatus(Booking.Status.APPROVAL_REQUIRED);
+
+        approveBooking();
 
         BookingCompletedEvent bookingCompletedEvent = BookingCompletedEvent.from(booking);
         verifyBookingCompletedEvent(bookingCompletedEvent);
@@ -79,15 +83,25 @@ public class FoodMarketDemoTest {
         verifyBookingCompletedMail(booking);
 
         verifyBookingStatus(Booking.Status.COMPLETED);
+
+    }
+
+    private void approveBooking() {
+        t.then(http()
+                .client(foodMarketApiClient)
+                .send()
+                .put("/api/bookings/approval/${bookingId}")
+        );
+
+        t.then(http()
+                .client(foodMarketApiClient)
+                .receive()
+                .response(HttpStatus.ACCEPTED)
+        );
     }
 
     private void verifyBookingStatus(Booking.Status status) {
-        t.then(sql()
-                .dataSource(dataSource)
-                .query()
-                .statement("select status from booking where booking.id=${bookingId}")
-                .validate("status", status.name())
-        );
+        t.then(t.applyBehavior(new VerifyBookingStatus(status, dataSource)));
     }
 
     private void verifyBookingCompletedMail(Booking booking) {
