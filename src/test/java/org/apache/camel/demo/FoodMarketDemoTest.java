@@ -1,6 +1,11 @@
 package org.apache.camel.demo;
 
+import javax.sql.DataSource;
+
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import org.apache.camel.demo.behavior.VerifyBookingCompletedMail;
+import org.apache.camel.demo.behavior.WaitForEntityPersisted;
 import org.apache.camel.demo.model.Booking;
 import org.apache.camel.demo.model.Product;
 import org.apache.camel.demo.model.Supply;
@@ -11,7 +16,6 @@ import org.citrusframework.annotations.CitrusConfiguration;
 import org.citrusframework.annotations.CitrusEndpoint;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.kafka.endpoint.KafkaEndpoint;
-import org.citrusframework.mail.message.MailMessage;
 import org.citrusframework.mail.server.MailServer;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.junit.jupiter.api.Test;
@@ -43,6 +47,9 @@ public class FoodMarketDemoTest {
     @CitrusEndpoint
     MailServer mailServer;
 
+    @Inject
+    DataSource dataSource;
+
     @Test
     void shouldMatchBookingAndSupply() {
         Product product = new Product("Kiwi");
@@ -50,6 +57,8 @@ public class FoodMarketDemoTest {
                 TestHelper.createShippingAddress().getFullAddress());
 
         createBooking(booking);
+
+        t.then(t.applyBehavior(new WaitForEntityPersisted(booking, dataSource)));
 
         Supply supply = new Supply("citrus", product, 100, 0.99D);
         createSupply(supply);
@@ -65,18 +74,7 @@ public class FoodMarketDemoTest {
     }
 
     private void verifyBookingCompletedMail(Booking booking) {
-        t.then(receive()
-                .endpoint(mailServer)
-                .message(MailMessage.request()
-                        .from("foodmarket@quarkus.io")
-                        .to("%s@quarkus.io".formatted(booking.getClient()))
-                        .subject("Booking completed!")
-                        .body("Hey %s, your booking %s has been completed."
-                                .formatted(booking.getClient(), booking.getProduct().getName()), "text/plain")));
-
-        t.then(send()
-                .endpoint(mailServer)
-                .message(MailMessage.response(250)));
+        t.then(t.applyBehavior(new VerifyBookingCompletedMail(booking, mailServer)));
     }
 
     private void createBooking(Booking booking) {
