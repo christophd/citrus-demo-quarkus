@@ -9,6 +9,7 @@ import org.apache.camel.demo.behavior.VerifyBookingStatus;
 import org.apache.camel.demo.behavior.WaitForEntityPersisted;
 import org.apache.camel.demo.model.Booking;
 import org.apache.camel.demo.model.Product;
+import org.apache.camel.demo.model.ShippingAddress;
 import org.apache.camel.demo.model.Supply;
 import org.apache.camel.demo.model.event.BookingCompletedEvent;
 import org.apache.camel.demo.model.event.ShippingEvent;
@@ -17,17 +18,20 @@ import org.citrusframework.annotations.CitrusConfiguration;
 import org.citrusframework.annotations.CitrusEndpoint;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.http.client.HttpClient;
+import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.kafka.endpoint.KafkaEndpoint;
 import org.citrusframework.mail.server.MailServer;
 import org.citrusframework.openapi.OpenApiSpecification;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 import static org.citrusframework.actions.ReceiveMessageAction.Builder.receive;
 import static org.citrusframework.actions.SendMessageAction.Builder.send;
 import static org.citrusframework.dsl.JsonSupport.json;
 import static org.citrusframework.dsl.JsonSupport.marshal;
+import static org.citrusframework.http.actions.HttpActionBuilder.http;
 import static org.citrusframework.openapi.actions.OpenApiActionBuilder.openapi;
 
 @QuarkusTest
@@ -43,6 +47,9 @@ public class FoodMarketDemoTest {
 
     @CitrusEndpoint
     HttpClient foodMarketApiClient;
+
+    @CitrusEndpoint
+    HttpServer shippingDetailsService;
 
     @CitrusEndpoint
     KafkaEndpoint supplies;
@@ -62,8 +69,7 @@ public class FoodMarketDemoTest {
     @Test
     void shouldMatchBookingAndSupply() {
         Product product = new Product("Kiwi");
-        Booking booking = new Booking("citrus", product, 250, 0.99D,
-                TestHelper.createShippingAddress().getFullAddress());
+        Booking booking = new Booking("citrus", product, 250, 0.99D);
 
         createBooking(booking);
 
@@ -79,9 +85,10 @@ public class FoodMarketDemoTest {
         BookingCompletedEvent bookingCompletedEvent = BookingCompletedEvent.from(booking);
         verifyBookingCompletedEvent(bookingCompletedEvent);
 
+        ShippingAddress shippingAddress = TestHelper.createShippingAddress();
         ShippingEvent shippingEvent = new ShippingEvent(booking.getClient(), product.getName(),
-                booking.getAmount(), booking.getShippingAddress());
-        verifyShippingEvent(shippingEvent);
+                booking.getAmount(), shippingAddress.getFullAddress());
+        verifyShippingEvent(shippingEvent, shippingAddress);
 
         verifyBookingCompletedMail(booking);
 
@@ -113,6 +120,8 @@ public class FoodMarketDemoTest {
     }
 
     private void createBooking(Booking booking) {
+        t.variable("booking", booking);
+
         t.when(openapi()
                 .specification(foodMarketSpec)
                 .client(foodMarketApiClient)
@@ -146,7 +155,21 @@ public class FoodMarketDemoTest {
         );
     }
 
-    private void verifyShippingEvent(ShippingEvent shippingEvent) {
+    private void verifyShippingEvent(ShippingEvent shippingEvent, ShippingAddress shippingAddress) {
+        t.then(http()
+                .server(shippingDetailsService)
+                .receive()
+                .get("/shipping/address/${booking.client}"));
+
+        t.then(http()
+                .server(shippingDetailsService)
+                .send()
+                .response(HttpStatus.OK)
+                .message()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(marshal(shippingAddress))
+        );
+
         t.then(receive()
                 .endpoint(shipping)
                 .message()
