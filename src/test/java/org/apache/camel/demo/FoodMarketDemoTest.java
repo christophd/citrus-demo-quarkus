@@ -9,6 +9,8 @@ import org.apache.camel.demo.model.Supply;
 import org.apache.camel.demo.model.event.BookingCompletedEvent;
 import org.apache.camel.demo.model.event.ShippingEvent;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.annotations.CitrusConfiguration;
+import org.citrusframework.annotations.CitrusEndpoint;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.kafka.endpoint.KafkaEndpoint;
 import org.citrusframework.quarkus.CitrusSupport;
@@ -21,32 +23,20 @@ import static org.citrusframework.kafka.endpoint.builder.KafkaEndpoints.kafka;
 
 @QuarkusTest
 @CitrusSupport
+@CitrusConfiguration(classes = { CitrusEndpointConfig.class })
 public class FoodMarketDemoTest {
 
     @CitrusResource
     TestCaseRunner t;
 
-    @Inject
-    ObjectMapper mapper;
+    @CitrusEndpoint
+    KafkaEndpoint supplies;
 
-    private final KafkaEndpoint supplies = kafka()
-            .asynchronous()
-            .topic("supplies")
-            .build();
+    @CitrusEndpoint
+    KafkaEndpoint completed;
 
-    private final KafkaEndpoint completed = kafka()
-            .asynchronous()
-            .topic("completed")
-            .timeout(10000L)
-            .consumerGroup("citrus-completed")
-            .build();
-
-    private final KafkaEndpoint shipping = kafka()
-            .asynchronous()
-            .topic("shipping")
-            .timeout(10000L)
-            .consumerGroup("citrus-shipping")
-            .build();
+    @CitrusEndpoint
+    KafkaEndpoint shipping;
 
     @Test
     void shouldMatchBookingAndSupply() {
@@ -74,7 +64,7 @@ public class FoodMarketDemoTest {
                         .topic("bookings")
                         .build())
                 .message()
-                .body(marshal(booking, mapper))
+                .body(marshal(booking))
         );
     }
 
@@ -82,7 +72,7 @@ public class FoodMarketDemoTest {
         t.when(send()
                 .endpoint(supplies)
                 .message()
-                .body(marshal(supply, mapper))
+                .body(marshal(supply))
         );
     }
 
@@ -90,7 +80,7 @@ public class FoodMarketDemoTest {
         t.then(receive()
                 .endpoint(completed)
                 .message()
-                .body(marshal(bookingCompletedEvent, mapper))
+                .body(marshal(bookingCompletedEvent))
         );
     }
 
@@ -98,7 +88,7 @@ public class FoodMarketDemoTest {
         t.then(receive()
                 .endpoint(shipping)
                 .message()
-                .body(marshal(shippingEvent, mapper))
+                .body(marshal(shippingEvent))
         );
     }
 }
