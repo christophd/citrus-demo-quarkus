@@ -19,21 +19,24 @@ import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.http.client.HttpClient;
 import org.citrusframework.kafka.endpoint.KafkaEndpoint;
 import org.citrusframework.mail.server.MailServer;
+import org.citrusframework.openapi.OpenApiSpecification;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 
 import static org.citrusframework.actions.ReceiveMessageAction.Builder.receive;
 import static org.citrusframework.actions.SendMessageAction.Builder.send;
 import static org.citrusframework.dsl.JsonSupport.json;
 import static org.citrusframework.dsl.JsonSupport.marshal;
-import static org.citrusframework.http.actions.HttpActionBuilder.http;
+import static org.citrusframework.openapi.actions.OpenApiActionBuilder.openapi;
 
 @QuarkusTest
 @CitrusSupport
 @CitrusConfiguration(classes = { CitrusEndpointConfig.class })
 public class FoodMarketDemoTest {
+
+    private final OpenApiSpecification foodMarketSpec =
+            OpenApiSpecification.from("http://localhost:8081/q/openapi");
 
     @CitrusResource
     TestCaseRunner t;
@@ -87,16 +90,17 @@ public class FoodMarketDemoTest {
     }
 
     private void approveBooking() {
-        t.then(http()
+        t.variable("id", "${bookingId}");
+        t.then(openapi()
+                .specification(foodMarketSpec)
                 .client(foodMarketApiClient)
-                .send()
-                .put("/api/bookings/approval/${bookingId}")
+                .send("approveBooking")
         );
 
-        t.then(http()
+        t.then(openapi()
+                .specification(foodMarketSpec)
                 .client(foodMarketApiClient)
-                .receive()
-                .response(HttpStatus.ACCEPTED)
+                .receive("approveBooking", HttpStatus.ACCEPTED)
         );
     }
 
@@ -109,19 +113,18 @@ public class FoodMarketDemoTest {
     }
 
     private void createBooking(Booking booking) {
-        t.when(http()
+        t.when(openapi()
+                .specification(foodMarketSpec)
                 .client(foodMarketApiClient)
-                .send()
-                .post("/api/bookings")
+                .send("addBooking")
                 .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(marshal(booking))
         );
 
-        t.then(http()
+        t.then(openapi()
+                .specification(foodMarketSpec)
                 .client(foodMarketApiClient)
-                .receive()
-                .response(HttpStatus.CREATED)
+                .receive("addBooking", HttpStatus.CREATED)
                 .message()
                 .extract(json().expression("$.id", "bookingId"))
         );
