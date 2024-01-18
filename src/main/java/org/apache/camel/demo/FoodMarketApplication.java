@@ -18,11 +18,10 @@
 package org.apache.camel.demo;
 
 import io.quarkus.runtime.StartupEvent;
-import jakarta.inject.Inject;
-import org.apache.camel.demo.model.Product;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import org.apache.camel.demo.model.Product;
 
 @ApplicationScoped
 public class FoodMarketApplication {
@@ -43,6 +42,7 @@ public class FoodMarketApplication {
         productService.add(new Product("Kiwi", "Tropical fruit"));
         productService.add(new Product("Cherry", "Delicious"));
         productService.add(new Product("Orange", "Juicy fruit"));
+        productService.add(new Product("Coconut", "Tropical fruit"));
     }
 
 }
