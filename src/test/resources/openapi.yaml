@@ -13,32 +13,35 @@ paths:
     get:
       tags:
       - Food Market Resource
+      description: Index
       responses:
         "200":
           description: OK
           content:
             text/html:
               schema:
-                $ref: '#/components/schemas/TemplateInstance'
+                $ref: "#/components/schemas/TemplateInstance"
     post:
       tags:
       - Food Market Resource
+      description: Form Submit
       requestBody:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/MultivaluedMapStringString'
+              $ref: "#/components/schemas/MultivaluedMapStringString"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateInstance'
+                $ref: "#/components/schemas/TemplateInstance"
   /api/bookings:
     get:
       tags:
       - Booking Api Resource
+      description: List
       operationId: listBookings
       responses:
         "200":
@@ -48,16 +51,17 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Booking'
+                  $ref: "#/components/schemas/Booking"
     post:
       tags:
       - Booking Api Resource
+      description: Add
       operationId: addBooking
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Booking'
+              $ref: "#/components/schemas/Booking"
       responses:
         "200":
           description: OK
@@ -65,6 +69,7 @@ paths:
     put:
       tags:
       - Booking Api Resource
+      description: Approve
       operationId: approveBooking
       parameters:
       - name: id
@@ -79,6 +84,7 @@ paths:
     get:
       tags:
       - Booking Api Resource
+      description: Find
       operationId: getBookingById
       parameters:
       - name: id
@@ -92,6 +98,7 @@ paths:
     delete:
       tags:
       - Booking Api Resource
+      description: Delete
       operationId: deleteBooking
       parameters:
       - name: id
@@ -106,6 +113,7 @@ paths:
     get:
       tags:
       - Supply Api Resource
+      description: List
       operationId: listSupplies
       responses:
         "200":
@@ -115,16 +123,17 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Supply'
+                  $ref: "#/components/schemas/Supply"
     post:
       tags:
       - Supply Api Resource
+      description: Add
       operationId: addSupply
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Supply'
+              $ref: "#/components/schemas/Supply"
       responses:
         "200":
           description: OK
@@ -132,6 +141,7 @@ paths:
     get:
       tags:
       - Supply Api Resource
+      description: Find
       operationId: getSupplyById
       parameters:
       - name: id
@@ -145,6 +155,7 @@ paths:
     delete:
       tags:
       - Supply Api Resource
+      description: Delete
       operationId: deleteSupply
       parameters:
       - name: id
@@ -159,24 +170,26 @@ paths:
     get:
       tags:
       - Food Market Resource
+      description: Booking Processor
       responses:
         "200":
           description: OK
           content:
             text/event-stream:
               schema:
-                $ref: '#/components/schemas/PublisherString'
+                $ref: "#/components/schemas/PublisherString"
   /supplies:
     get:
       tags:
       - Food Market Resource
+      description: Supply Processor
       responses:
         "200":
           description: OK
           content:
             text/event-stream:
               schema:
-                $ref: '#/components/schemas/PublisherString'
+                $ref: "#/components/schemas/PublisherString"
 components:
   schemas:
     Booking:
@@ -188,7 +201,7 @@ components:
         client:
           type: string
         product:
-          $ref: '#/components/schemas/Product'
+          $ref: "#/components/schemas/Product"
         amount:
           format: int32
           type: integer
@@ -197,7 +210,7 @@ components:
         shippingAddress:
           type: string
         status:
-          $ref: '#/components/schemas/Status'
+          $ref: "#/components/schemas/Status"
     Charset:
       type: object
       properties:
@@ -222,12 +235,12 @@ components:
         parts:
           type: array
           items:
-            $ref: '#/components/schemas/Part'
+            $ref: "#/components/schemas/Part"
         literal:
           type: boolean
         literalValue: {}
         origin:
-          $ref: '#/components/schemas/Origin'
+          $ref: "#/components/schemas/Origin"
         generatedId:
           format: int32
           type: integer
@@ -297,7 +310,7 @@ components:
         variant:
           type: object
           allOf:
-          - $ref: '#/components/schemas/Variant'
+          - $ref: "#/components/schemas/Variant"
           nullable: true
         synthetic:
           type: boolean
@@ -309,9 +322,9 @@ components:
         key:
           type: string
         defaultValue:
-          $ref: '#/components/schemas/Expression'
+          $ref: "#/components/schemas/Expression"
         origin:
-          $ref: '#/components/schemas/Origin'
+          $ref: "#/components/schemas/Origin"
     Part:
       type: object
       properties:
@@ -353,21 +366,21 @@ components:
         supplier:
           type: string
         product:
-          $ref: '#/components/schemas/Product'
+          $ref: "#/components/schemas/Product"
         amount:
           format: int32
           type: integer
         price:
           type: number
         status:
-          $ref: '#/components/schemas/Status1'
+          $ref: "#/components/schemas/Status1"
     Template:
       type: object
       properties:
         expressions:
           type: array
           items:
-            $ref: '#/components/schemas/Expression'
+            $ref: "#/components/schemas/Expression"
         generatedId:
           type: string
         id:
@@ -375,12 +388,12 @@ components:
         variant:
           type: object
           allOf:
-          - $ref: '#/components/schemas/Variant'
+          - $ref: "#/components/schemas/Variant"
           nullable: true
         parameterDeclarations:
           type: array
           items:
-            $ref: '#/components/schemas/ParameterDeclaration'
+            $ref: "#/components/schemas/ParameterDeclaration"
         fragmentIds:
           uniqueItems: true
           type: array
@@ -388,6 +401,10 @@ components:
             type: string
         fragment:
           type: boolean
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemplateNode"
     TemplateInstance:
       type: object
       properties:
@@ -395,20 +412,41 @@ components:
           format: int64
           type: integer
         template:
-          $ref: '#/components/schemas/Template'
+          $ref: "#/components/schemas/Template"
+    TemplateNode:
+      type: object
+      properties:
+        expressions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Expression"
+        parameterDeclarations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParameterDeclaration"
+        origin:
+          $ref: "#/components/schemas/Origin"
+        constant:
+          type: boolean
+        section:
+          type: boolean
+        text:
+          type: boolean
+        expression:
+          type: boolean
     Variant:
       type: object
       properties:
         locale:
-          $ref: '#/components/schemas/Locale'
+          $ref: "#/components/schemas/Locale"
         contentType:
           type: string
         encoding:
-          $ref: '#/components/schemas/Charset'
+          $ref: "#/components/schemas/Charset"
         hashCode:
           format: int32
           type: integer
         mediaType:
           type: string
         charset:
-          $ref: '#/components/schemas/Charset'
+          $ref: "#/components/schemas/Charset"

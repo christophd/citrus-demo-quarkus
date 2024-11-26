@@ -15,6 +15,7 @@
     "/" : {
       "get" : {
         "tags" : [ "Food Market Resource" ],
+        "description" : "Index",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -30,6 +31,7 @@
       },
       "post" : {
         "tags" : [ "Food Market Resource" ],
+        "description" : "Form Submit",
         "requestBody" : {
           "content" : {
             "application/x-www-form-urlencoded" : {
@@ -56,6 +58,7 @@
     "/api/bookings" : {
       "get" : {
         "tags" : [ "Booking Api Resource" ],
+        "description" : "List",
         "operationId" : "listBookings",
         "responses" : {
           "200" : {
@@ -75,6 +78,7 @@
       },
       "post" : {
         "tags" : [ "Booking Api Resource" ],
+        "description" : "Add",
         "operationId" : "addBooking",
         "requestBody" : {
           "content" : {
@@ -95,6 +99,7 @@
     "/api/bookings/approval/{id}" : {
       "put" : {
         "tags" : [ "Booking Api Resource" ],
+        "description" : "Approve",
         "operationId" : "approveBooking",
         "parameters" : [ {
           "name" : "id",
@@ -114,6 +119,7 @@
     "/api/bookings/{id}" : {
       "get" : {
         "tags" : [ "Booking Api Resource" ],
+        "description" : "Find",
         "operationId" : "getBookingById",
         "parameters" : [ {
           "name" : "id",
@@ -131,6 +137,7 @@
       },
       "delete" : {
         "tags" : [ "Booking Api Resource" ],
+        "description" : "Delete",
         "operationId" : "deleteBooking",
         "parameters" : [ {
           "name" : "id",
@@ -150,6 +157,7 @@
     "/api/supplies" : {
       "get" : {
         "tags" : [ "Supply Api Resource" ],
+        "description" : "List",
         "operationId" : "listSupplies",
         "responses" : {
           "200" : {
@@ -169,6 +177,7 @@
       },
       "post" : {
         "tags" : [ "Supply Api Resource" ],
+        "description" : "Add",
         "operationId" : "addSupply",
         "requestBody" : {
           "content" : {
@@ -189,6 +198,7 @@
     "/api/supplies/{id}" : {
       "get" : {
         "tags" : [ "Supply Api Resource" ],
+        "description" : "Find",
         "operationId" : "getSupplyById",
         "parameters" : [ {
           "name" : "id",
@@ -206,6 +216,7 @@
       },
       "delete" : {
         "tags" : [ "Supply Api Resource" ],
+        "description" : "Delete",
         "operationId" : "deleteSupply",
         "parameters" : [ {
           "name" : "id",
@@ -225,6 +236,7 @@
     "/bookings" : {
       "get" : {
         "tags" : [ "Food Market Resource" ],
+        "description" : "Booking Processor",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -242,6 +254,7 @@
     "/supplies" : {
       "get" : {
         "tags" : [ "Food Market Resource" ],
+        "description" : "Supply Processor",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -557,6 +570,12 @@
           },
           "fragment" : {
             "type" : "boolean"
+          },
+          "nodes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TemplateNode"
+            }
           }
         }
       },
@@ -569,6 +588,38 @@
           },
           "template" : {
             "$ref" : "#/components/schemas/Template"
+          }
+        }
+      },
+      "TemplateNode" : {
+        "type" : "object",
+        "properties" : {
+          "expressions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Expression"
+            }
+          },
+          "parameterDeclarations" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ParameterDeclaration"
+            }
+          },
+          "origin" : {
+            "$ref" : "#/components/schemas/Origin"
+          },
+          "constant" : {
+            "type" : "boolean"
+          },
+          "section" : {
+            "type" : "boolean"
+          },
+          "text" : {
+            "type" : "boolean"
+          },
+          "expression" : {
+            "type" : "boolean"
           }
         }
       },
