@@ -24,6 +24,7 @@ import org.citrusframework.mail.server.MailServer;
 import org.citrusframework.openapi.OpenApiSpecification;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.selenium.endpoint.SeleniumBrowser;
+import org.citrusframework.spi.Resources;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,7 +45,7 @@ import static org.citrusframework.selenium.actions.SeleniumActionBuilder.seleniu
 public class FoodMarketDemoTest {
 
     private final OpenApiSpecification foodMarketSpec =
-            OpenApiSpecification.from("http://localhost:8081/q/openapi");
+            OpenApiSpecification.from(Resources.fromClasspath("openapi.yaml"));
 
     @CitrusResource
     TestCaseRunner t;
