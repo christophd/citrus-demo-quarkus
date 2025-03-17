@@ -120,8 +120,10 @@ public class SupplyService {
         String shippingAddress;
         if (booking.getShippingAddress() != null) {
             shippingAddress = booking.getShippingAddress();
-        } else {
+        } else if (shippingService.isEnabled()) {
             shippingAddress = shippingService.getAddressInformation(booking).getFullAddress();
+        } else {
+            shippingAddress = "N/A";
         }
 
         ShippingEvent shippingEvent = new ShippingEvent(booking.getClient(), supply.getProduct().getName(),
