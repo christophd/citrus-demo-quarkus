@@ -87,28 +87,28 @@
                         </td>
                         <td role="cell" data-label="Amount">
                             {#if booking.amount}
-                            <span>{booking.amount}</span>
+                                <span>{booking.amount}</span>
                             {#else}
-                            <span>0</span>
+                                <span>0</span>
                             {/if}
                         </td>
                         <td role="cell" data-label="Price">
                             {#if booking.price}
-                            <span>{booking.price}</span>
+                                <span>{booking.price}</span>
                             {#else}
-                            <span>0.00</span>
+                                <span>0.00</span>
                             {/if}
                         </td>
                         <td role="cell" data-label="Status">
                             <span>{booking.status}</span>
                         </td>
                         <td role="cell" data-label="Action">
-                            {#when booking.status}
-                                {#is APPROVAL_REQUIRED}
+                        {#when booking.status}
+                            {#is APPROVAL_REQUIRED}
                                 <a id="{booking.id}" href="#" class="approve-booking"><i class="fas fa-check" aria-hidden="true"></i> APPROVE</a>
-                                {#is in PENDING COMPLETED}
+                            {#is in PENDING COMPLETED}
                                 <a id="{booking.id}" href="#" class="view-booking"><i class="fas fa-search" aria-hidden="true"></i> VIEW</a>
-                            {/when}
+                        {/when}
                         </td>
                     </tr>
                     {/for}
@@ -160,7 +160,7 @@
                             {/if}
                         </td>
                         <td role="cell" data-label="Status">
-                        <span>{supply.status}</span>
+                            <span>{supply.status}</span>
                         </td>
                         <td role="cell" data-label="Action">
                             <a id="{supply.id}" href="#" class="view-supply"><i class="fas fa-search" aria-hidden="true"></i> VIEW</a>
@@ -201,6 +201,7 @@
                                     type="text"
                                     id="name"
                                     name="name"
+                                    value="camel-demo"
                             />
                         </div>
                     </div>
@@ -264,7 +265,7 @@
                                 <option value selected>Select one</option>
                                 <option value="PENDING">PENDING</option>
                                 <option value="COMPLETED">COMPLETED</option>
-                                <option value="AVAILABLE">AVAILABLE</option>
+                                <option value="AVAILABLE" selected="selected">AVAILABLE</option>
                                 <option value="SOLD">SOLD</option>
                             </select>
                         </div>
