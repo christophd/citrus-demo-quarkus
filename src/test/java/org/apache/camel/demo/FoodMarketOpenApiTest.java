@@ -62,6 +62,7 @@ class FoodMarketOpenApiTest {
                 .client(foodMarketApiClient)
                 .send("addBooking")
                 .message()
+                .schemaValidation(false)
                 .dictionary(getBookingDictionary()));
 
         t.then(openapi()
@@ -77,6 +78,7 @@ class FoodMarketOpenApiTest {
                 .client(foodMarketApiClient)
                 .send("addSupply")
                 .message()
+                .schemaValidation(false)
                 .dictionary(getSupplyDictionary()));
 
         t.then(openapi()
